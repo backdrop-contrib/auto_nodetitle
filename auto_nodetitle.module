@@ -10,6 +10,17 @@ define('AUTO_NODETITLE_ENABLED', 1);
 define('AUTO_NODETITLE_OPTIONAL', 2);
 
 /**
+ * Implements hook_config_info().
+ */
+function auto_nodetitle_config_info() {
+  $prefixes['auto_nodetitle.settings'] = array(
+    'label' => t('Auto Nodetitle settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
  * Implements hook_permission().
  */
 function auto_nodetitle_permission() {
@@ -26,14 +37,14 @@ function auto_nodetitle_permission() {
  * Implements hook_form_FORM_ID_alter() for the node form.
  */
 function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
-  if (auto_nodetitle_get_setting($form['#node']->type) == AUTO_NODETITLE_ENABLED) {
-    // We will autogenerate the title later, just hide the title field in the
-    // meanwhile.
+  if (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == 1)
+  {
+  // We will autogenerate the title later, just hide the title field in the meanwhile.
     $form['title']['#value'] = 'ant';
     $form['title']['#type'] = 'value';
     $form['title']['#required'] = FALSE;
   }
-  elseif (auto_nodetitle_get_setting($form['#node']->type) == AUTO_NODETITLE_OPTIONAL) {
+  elseif (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == 2) {
     $form['title']['#required'] = FALSE;
   }
 }
@@ -45,8 +56,9 @@ function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
  * the node preview is shown right too.
  */
 function auto_nodetitle_node_submit($node, $form, &$form_state) {
-  $setting = auto_nodetitle_get_setting($node->type);
-  if ($setting == AUTO_NODETITLE_ENABLED || ($setting == AUTO_NODETITLE_OPTIONAL && empty($form_state['values']['title']))) {
+  $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
+  
+  if ($setting == 1 || ($setting == 2 && empty($form_state['values']['title']))) {
     auto_nodetitle_set_title($node);
   }
 }
@@ -65,7 +77,7 @@ function auto_nodetitle_node_presave($node) {
  * Returns whether the auto nodetitle has to be set.
  */
 function auto_nodetitle_is_needed($node) {
-  return empty($node->auto_nodetitle_applied) && ($setting = auto_nodetitle_get_setting($node->type)) && !($setting == AUTO_NODETITLE_OPTIONAL && !empty($node->title));
+  return empty($node->auto_nodetitle_applied) && ($setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type)) && !($setting == 2 && !empty($node->title));
 }
 
 /**
@@ -73,7 +85,7 @@ function auto_nodetitle_is_needed($node) {
  */
 function auto_nodetitle_set_title(&$node) {
   $types = node_type_get_types();
-  $pattern = variable_get('ant_pattern_' . $node->type, '');
+  $pattern = config_get('auto_nodetitle.settings', 'ant_pattern_' . $node->type);
   if (trim($pattern)) {
     $node->changed = REQUEST_TIME;
     $node->title = _auto_nodetitle_patternprocessor($pattern, $node);
@@ -128,9 +140,9 @@ function auto_nodetitle_operations_update($nodes) {
   */
 function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
-  $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE, 'clear' => TRUE));
+  $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE));
   // Evalute PHP.
-  if (variable_get('ant_php_' . $node->type, 0)) {
+  if (config_get('auto_nodetitle.settings', 'ant_php_' . $node->type)) { 
     $output = auto_nodetitle_eval($output, $node);
   }
   // Strip tags.
@@ -152,13 +164,13 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     '#group' => 'additional_settings',
     '#attached' => array(
       'js' => array(
-        'auto-nodetitle' => drupal_get_path('module', 'auto_nodetitle') . '/auto_nodetitle.js',
+        'auto-nodetitle' => backdrop_get_path('module', 'auto_nodetitle') . '/auto_nodetitle.js',
       ),
     ),
   );
   $form['auto_nodetitle']['ant'] = array(
-    '#type' => 'radios',
-    '#default_value' => $default_value,
+    '#type' => 'radios', 
+    '#default_value' => config_get('auto_nodetitle.settings', 'ant_' . $form['#node_type']->type),
     '#options' => array(
       t('Disabled'),
       t('Automatically generate the title and hide the title field'),
@@ -169,11 +181,11 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     '#type' => 'textarea',
     '#title' => t('Pattern for the title'),
     '#description' => t('Leave blank for using the per default generated title. Otherwise this string will be used as title. Use the syntax [token] if you want to insert a replacement pattern.'),
-    '#default_value' => variable_get('ant_pattern_' . $form['#node_type']->type, ''),
+    '#default_value' => config_get('auto_nodetitle.settings', 'ant_pattern_' . $form['#node_type']->type),
   );
   // Don't allow editing of the pattern if PHP is used, but the users lacks
   // permission for PHP.
-  if (variable_get('ant_php_' . $form['#node_type']->type, '') && !user_access('use PHP for title patterns')) {
+  if (config_get('ant_php_' . $form['#node_type']->type) && !user_access('use PHP for title patterns')) {
     $form['auto_nodetitle']['ant_pattern']['#disabled'] = TRUE;
     $form['auto_nodetitle']['ant_pattern']['#description'] = t('You are not allow the configure the pattern for the title, as you lack the %permission permission.', array('%permission' => t('Use PHP for title patterns')));
   }
@@ -192,7 +204,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Evaluate PHP in pattern.'),
     '#description' => t('Put PHP code above that returns your string, but make sure you surround code in &lt;?php and ?&gt;. Note that $node is available and can be used by your code.'),
-    '#default_value' => variable_get('ant_php_' . $form['#node_type']->type, ''),
+    '#default_value' => config_get('auto_nodetitle.settings', 'ant_php_' . $form['#node_type']->type),
   );
 }
 
@@ -200,7 +212,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
  * Gets the auto node title setting associated with the given content type.
  */
 function auto_nodetitle_get_setting($type) {
-  return variable_get('ant_' . $type, AUTO_NODETITLE_DISABLED);
+  return config_get('ant_' . $type);
 }
 
 /**
@@ -214,25 +226,19 @@ function auto_nodetitle_eval($code, $node) {
   return $output;
 }
 
-/**
- * Implements hook_node_type().
- */
-function auto_nodetitle_node_type($op, $info) {
-  switch ($op) {
-    case 'delete':
-      variable_del('ant_' . $info->type);
-      variable_del('ant_pattern_' . $info->type);
-      variable_del('ant_php_' . $info->type);
-      break;
-    case 'update':
-      if (!empty($info->old_type) && $info->old_type != $info->type) {
-        variable_set('ant_' . $info->type, auto_nodetitle_get_setting($info->old_type));
-        variable_set('ant_pattern_' . $info->type, variable_get('ant_pattern_' . $info->old_type, ''));
-        variable_set('ant_php_' . $info->type, variable_get('ant_php_' . $info->old_type, ''));
-        variable_del('ant_' . $info->old_type);
-        variable_del('ant_pattern_' . $info->old_type);
-        variable_del('ant_php_' . $info->old_type);
-      }
-      break;
-  }
+function auto_nodetitle_form_alter(&$form, &$form_state, $form_id)
+{
+if ($form_id == "node_type_form")
+{
+$form['#submit'][] = 'auto_nodetitle_submit';
+}
+}
+
+function auto_nodetitle_submit(&$form, &$form_state, $form_id)
+{
+  $config = config('auto_nodetitle.settings');
+  $config->set('ant_' . $form_state["values"]["type"], $form_state["values"]["ant"]);
+  $config->set('ant_pattern_' . $form_state["values"]["type"], $form_state["values"]["ant_pattern"]);
+  $config->set('ant_php_' . $form_state["values"]["type"], $form_state["values"]["ant_php"]);
+  $config->save();
 }
