@@ -2,6 +2,4 @@ name = Automatic Nodetitles
 description = Allows hiding of the content title field and automatic title creation.
 version = BACKDROP_VERSION
 backdrop = 1.x
-files[] = auto_nodetitle.install
-files[] = auto_nodetitle.module
-files[] = auto_nodetitle.js
+type = module

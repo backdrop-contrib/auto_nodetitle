@@ -1,20 +1,23 @@
 AUTOMATIC NODETITLE
-===========
+===================
 
 CONTENTS OF THIS FILE
 ---------------------
 
  - Introduction
+ - Tested
+ - Known Issues
+ - Special Thanks
  - Requirements
  - Installation
- - Permissions
+ - Coming From Drupal?
  - Usage
- - Sponsors
+ - License
+ - Credits
+ - Maintainers
 
 INTRODUCTION
 ------------
-
-by Wolfgang Ziegler, nuppla@zites.net
 
 This is a small and efficent module that allows hiding of the content title field in the form.
 To prevent empty content title fields it sets the title to the content type name or to an
@@ -29,14 +32,18 @@ appropriate title.
 TESTED
 -----
 
-Created some auto-title from text and PHP nodes in Backdrop 1.0
-
+Created some auto-titles from text and PHP nodes in Backdrop 1.0
 
 KNOWN ISSUES
 ---------------------
-@todo
-- integration with token module
 
+@todo
+- integration with token module is not working in Backdrop 1.0
+
+SPECIAL THANKS
+--------------
+
+Wolfgang Ziegler, nuppla@zites.net
 
 REQUIREMENTS
 ------------
@@ -46,14 +53,18 @@ none
 INSTALLATION
 ------------
 
-Automatic NodeTitle can be installed via the standard Backdrop installation process
-(http://drupal.org/documentation/install/modules-themes/modules-7).
+Install this module using the official Backdrop CMS instructions at https://backdropcms.org/guide/modules
 
 * (optional) Download and install the token module in order to get token
    replacement help.
- * Copy the module's directory to your modules directory and activate the module.
- * For each content type you want to have an automatic title, configure the
+* Copy the module's directory to your modules directory and activate the module.
+* For each content type you want to have an automatic title, configure the
    module at 'admin/structure/types'.
+
+COMING FROM DRUPAL?
+-------------------
+
+Nothing substantially different.
 
 PERMISSIONS
 ------------
@@ -72,7 +83,6 @@ Advanced Use: PHP Code
  author as title:
 
 <?php return "Author: $node->name"; ?>
-
 
 
  Advanced Use: Combining tokens and PHP
@@ -106,22 +116,22 @@ Advanced Use: PHP Code
  "Update automatic nodetitles".
 
 
-
-
-License
+LICENSE
 -------
 
-This project is GPL v2 software. See the LICENSE.txt file in this directory for
-complete text.
+This project is GPL v2 software. See the LICENSE.txt file in this directory for complete text.
 
-Maintainers
+CREDITS
+-----------
+
+This module is based on the Auto NodeTitle module for Drupal, originally written and maintained by a large number of contributors, including:
+
+- Wolfgang Ziegler <https://www.drupal.org/u/fago>
+
+MAINTAINERS
 -----------
 
 - seeking
-
-Current Maintainers on Drupal:
-
- - Wolfgang Ziegler <https://www.drupal.org/u/fago>
 
 Ported to Backdrop by:
 
