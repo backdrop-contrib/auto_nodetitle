@@ -23,9 +23,8 @@ function auto_nodetitle_config_info() {
 /**
  * Implements hook_form_FORM_ID_alter() for the node form.
  */
-function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
-  if (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == 1)
-  {
+function auto_nodetitle_form_node_form_alter(&$form, &$form_state) {
+  if (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == 1) {
   // We will autogenerate the title later, just hide the title field in the meanwhile.
     $form['title']['#value'] = 'ant';
     $form['title']['#type'] = 'value';
@@ -44,7 +43,7 @@ function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
  */
 function auto_nodetitle_node_submit($node, $form, &$form_state) {
   $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
-  
+
   if ($setting == 1 || ($setting == 2 && empty($form_state['values']['title']))) {
     auto_nodetitle_set_title($node);
   }
@@ -68,7 +67,10 @@ function auto_nodetitle_is_needed($node) {
 }
 
 /**
- * Sets the automatically generated nodetitle for the node
+ * Helper function: sets the automatically generated nodetitle for the node.
+ *
+ * @param $node
+ *   A fully loaded node object.
  */
 function auto_nodetitle_set_title(&$node) {
   $types = node_type_get_types();
@@ -178,6 +180,18 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     '#theme' => 'token_tree',
     '#token_types' => array('node'),
   );
+
+  $form['#submit'][] = 'auto_nodetitle_node_type_form_submit';
+}
+
+/**
+ * Submit handler. Stores settings per mode type.
+ */
+function auto_nodetitle_node_type_form_submit(&$form, &$form_state, $form_id) {
+  $config = config('auto_nodetitle.settings');
+  $config->set('ant_' . $form_state['values']['type'], $form_state['values']['ant']);
+  $config->set('ant_pattern_' . $form_state['values']['type'], $form_state['values']['ant_pattern']);
+  $config->save();
 }
 
 /**
@@ -185,20 +199,4 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
  */
 function auto_nodetitle_get_setting($type) {
   return config_get('auto_nodetitle.settings', 'ant_' . $type);
-}
-
-function auto_nodetitle_form_alter(&$form, &$form_state, $form_id)
-{
-if ($form_id == "node_type_form")
-{
-$form['#submit'][] = 'auto_nodetitle_submit';
-}
-}
-
-function auto_nodetitle_submit(&$form, &$form_state, $form_id)
-{
-  $config = config('auto_nodetitle.settings');
-  $config->set('ant_' . $form_state["values"]["type"], $form_state["values"]["ant"]);
-  $config->set('ant_pattern_' . $form_state["values"]["type"], $form_state["values"]["ant_pattern"]);
-  $config->save();
 }
