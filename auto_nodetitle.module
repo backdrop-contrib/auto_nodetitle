@@ -1,8 +1,7 @@
 <?php
-
 /**
  * @file
- * Allows hiding of the node title field and automatic title creation.
+ * Allows node titles to be generated automatically based on tokens.
  */
 
 define('AUTO_NODETITLE_DISABLED', 0);
@@ -17,20 +16,8 @@ function auto_nodetitle_config_info() {
     'label' => t('Auto Nodetitle settings'),
     'group' => t('Configuration'),
   );
-  return $prefixes;
-}
 
-/**
- * Implements hook_permission().
- */
-function auto_nodetitle_permission() {
-  return array(
-    'use PHP for title patterns' => array(
-      'title' => t('Use PHP for title patterns'),
-      'description' => t('Use PHP for title patterns.'),
-      'restrict access' => TRUE,
-    ),
-  );
+  return $prefixes;
 }
 
 /**
@@ -145,13 +132,9 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
     'clear' => FALSE,
     'langcode' => $langcode
   ));
-  
-  // Evalute PHP below -- this is a security hazard however, so it is commented out by default.
-  // if (config_get('auto_nodetitle.settings', 'ant_php_' . $node->type)) {
-  //   $output = auto_nodetitle_eval($output, $node);
-  // }
-  // Strip tags.
+
   $output = preg_replace('/[\t\n\r\0\x0B]/', '', strip_tags($output));
+
   return $output;
 }
 
@@ -183,49 +166,25 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     )
   );
   $form['auto_nodetitle']['ant_pattern'] = array(
-    '#type' => 'textarea',
+    '#type' => 'textfield',
+    '#size' => 80,
     '#title' => t('Pattern for the title'),
-    '#description' => t('Leave blank for using the per default generated title. Otherwise this string will be used as title. Use the syntax [token] if you want to insert a replacement pattern.'),
+    '#description' => t('Use [token] syntax to insert a replacement pattern. Leave blank to use the default auto-generated title.'),
     '#default_value' => config_get('auto_nodetitle.settings', 'ant_pattern_' . $form['#node_type']->type),
   );
-  // Don't allow editing of the pattern if PHP is used, but the users lacks permission for PHP.
-  $form['auto_nodetitle']['ant_pattern']['#description'] = t('You are not allow the configure the pattern for the title, as you lack the %permission permission.', array('%permission' => t('Use PHP for title patterns')));
-  
-  // Evalute PHP below -- this is a security hazard however, so it is commented out by default.
-  // if (config_get('ant_php_' . $form['#node_type']->type) && !user_access('use PHP for title patterns')) {
-    $form['auto_nodetitle']['ant_pattern']['#disabled'] = TRUE;
-    // $form['auto_nodetitle']['ant_pattern']['#description'] = t('You are not allow the configure the pattern for the title, as you lack the %permission permission.', array('%permission' => t('Use PHP for title patterns')));
-    $form['auto_nodetitle']['ant_pattern']['#description'] = t('Uncomment in the module code an option if you would like to use PHP for titles, as it is a security hazard.', array('%permission' => t('Use PHP for title patterns')));
-  // }
 
   // Display the list of available placeholders if token module is installed.
-    $form['auto_nodetitle']['token_help'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array('node'),
-    );
-
-  // $form['auto_nodetitle']['ant_php'] = array(
-  //   '#access' => user_access('use PHP for title patterns'),
-  //   '#type' => 'checkbox',
-  //   '#title' => t('Evaluate PHP in pattern.'),
-  //   '#description' => t('Put PHP code above that returns your string, but make sure you surround code in &lt;?php and ?&gt;. Note that $node is available and can be used by your code.'),
-  //   '#default_value' => config_get('auto_nodetitle.settings', 'ant_php_' . $form['#node_type']->type),
-  // );
+  $form['auto_nodetitle']['token_help'] = array(
+    '#theme' => 'token_tree',
+    '#token_types' => array('node'),
+  );
 }
 
 /**
  * Gets the auto node title setting associated with the given content type.
  */
 function auto_nodetitle_get_setting($type) {
-  return config_get('ant_' . $type);
-}
-
-/**
- * Evaluates php code and passes $node to it.
- */
-function auto_nodetitle_eval($code, $node) {
-  $output = eval("?> $code <?php ");
-  return $output;
+  return config_get('auto_nodetitle.settings', 'ant_' . $type);
 }
 
 function auto_nodetitle_form_alter(&$form, &$form_state, $form_id)
@@ -241,6 +200,5 @@ function auto_nodetitle_submit(&$form, &$form_state, $form_id)
   $config = config('auto_nodetitle.settings');
   $config->set('ant_' . $form_state["values"]["type"], $form_state["values"]["ant"]);
   $config->set('ant_pattern_' . $form_state["values"]["type"], $form_state["values"]["ant_pattern"]);
-  $config->set('ant_php_' . $form_state["values"]["type"], $form_state["values"]["ant_php"]);
   $config->save();
 }
