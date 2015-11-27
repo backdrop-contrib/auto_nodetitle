@@ -129,10 +129,11 @@ function auto_nodetitle_operations_update($nodes) {
   */
 function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
+  global $language;
   $output = token_replace($pattern, array('node' => $node), array(
     'sanitize' => FALSE,
     'clear' => FALSE,
-    'langcode' => $langcode
+    'langcode' => $language->langcode
   ));
 
   $output = preg_replace('/[\t\n\r\0\x0B]/', '', strip_tags($output));
