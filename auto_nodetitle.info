@@ -1,5 +1,4 @@
 name = Automatic node titles
 description = Allows node titles to be generated automatically based on tokens.
-version = 1.x-1.1
 backdrop = 1.x
 type = module
