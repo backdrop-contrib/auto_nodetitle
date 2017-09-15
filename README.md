@@ -38,6 +38,7 @@ Current Maintainers
 -------------------
 
 - Andy Martha (https://github.com/biolithic)
+- Robert Garrigos (https://github.com/robertgarrigos)
 - Seeking co-maintainers
 
 
