@@ -188,7 +188,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
 /**
  * Submit handler. Stores settings per mode type.
  */
-function auto_nodetitle_node_type_form_submit(&$form, &$form_state, $form_id) {
+function auto_nodetitle_node_type_form_submit(&$form, &$form_state) {
   $config = config('auto_nodetitle.settings');
   $config->set('ant_' . $form_state['values']['type'], $form_state['values']['ant']);
   $config->set('ant_pattern_' . $form_state['values']['type'], $form_state['values']['ant_pattern']);
