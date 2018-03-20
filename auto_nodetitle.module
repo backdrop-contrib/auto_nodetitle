@@ -78,7 +78,7 @@ function auto_nodetitle_set_title(&$node) {
     $node->changed = REQUEST_TIME;
     $node->title = _auto_nodetitle_patternprocessor($pattern, $node);
   }
-  elseif ($node->nid) {
+  elseif (!empty($node->nid)) {
     $node->title = t('@type @node-id', array('@type' => $types[$node->type]->name, '@node-id' => $node->nid));
   }
   else {
