@@ -56,7 +56,12 @@ function auto_nodetitle_node_submit($node, $form, &$form_state) {
  */
 function auto_nodetitle_node_presave($node) {
   // If not yet done, generate the title now.
-  if (auto_nodetitle_is_needed($node)) {
+   // This check if the node is being updated.
+   if($node->auto_nodetitle_applied && $node->nid)
+   {
+      auto_nodetitle_set_title($node);
+   }
+   if(auto_nodetitle_is_needed($node)) {
     auto_nodetitle_set_title($node);
   }
 }
