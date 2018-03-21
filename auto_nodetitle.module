@@ -134,7 +134,7 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
     $output = auto_nodetitle_eval($output, $node);
   }
   // Strip tags.
-  $output = preg_replace('/[\t\n\r\0\x0B]/', '', strip_tags($output));
+  $output = preg_replace('/[\t\n\r\0\x0B]/', '', $output);
   return trim($output);
 }
 
