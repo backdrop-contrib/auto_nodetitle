@@ -47,6 +47,7 @@ function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
 function auto_nodetitle_node_submit($node, $form, &$form_state) {
   $setting = auto_nodetitle_get_setting($node->type);
   if ($setting == AUTO_NODETITLE_ENABLED || ($setting == AUTO_NODETITLE_OPTIONAL && empty($form_state['values']['title']))) {
+    $node->auto_nodetitle_applied = TRUE;
     drupal_register_shutdown_function('_auto_nodetitle_save_title');
   }
 }
