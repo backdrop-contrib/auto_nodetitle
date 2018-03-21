@@ -47,7 +47,7 @@ function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
 function auto_nodetitle_node_submit($node, $form, &$form_state) {
   $setting = auto_nodetitle_get_setting($node->type);
   if ($setting == AUTO_NODETITLE_ENABLED || ($setting == AUTO_NODETITLE_OPTIONAL && empty($form_state['values']['title']))) {
-    auto_nodetitle_set_title($node);
+    drupal_register_shutdown_function('_auto_nodetitle_save_title');
   }
 }
 
@@ -63,6 +63,24 @@ function auto_nodetitle_node_presave($node) {
    }
    if(auto_nodetitle_is_needed($node)) {
     auto_nodetitle_set_title($node);
+  }
+}
+
+/**
+ * Helper function to save node title.
+ */
+function _auto_nodetitle_save_title() {
+  $nodes = node_get_recent(1);
+  foreach ($nodes as $node) {
+    auto_nodetitle_set_title($node);
+    db_update('node')
+      ->fields(array('title' => $node->title, 'changed' => REQUEST_TIME))
+      ->condition('nid', $node->nid)
+      ->execute();
+    db_update('node_revision')
+      ->fields(array('title' => $node->title, 'timestamp' => REQUEST_TIME))
+      ->condition('nid', $node->nid)
+      ->execute();
   }
 }
 
