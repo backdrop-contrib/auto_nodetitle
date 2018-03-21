@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Installation file for the automatic nodetitle module
+ * Installation file for the automatic nodetitle module.
  */
 
 /**
@@ -24,7 +24,7 @@ function auto_nodetitle_uninstall() {
 }
 
 /**
- * make sure hooks are invoked after cck main hooks
+ * Make sure hooks are invoked after cck main hooks.
  */
 function auto_nodetitle_update_1() {
   $ret = array();

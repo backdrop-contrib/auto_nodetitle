@@ -69,7 +69,7 @@ function auto_nodetitle_is_needed($node) {
 }
 
 /**
- * Sets the automatically generated nodetitle for the node
+ * Sets the automatically generated nodetitle for the node.
  */
 function auto_nodetitle_set_title(&$node) {
   $types = node_type_get_types();
@@ -129,7 +129,7 @@ function auto_nodetitle_operations_update($nodes) {
 function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
   $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE, 'clear' => TRUE));
-  // Evalute PHP.
+  // Evaluate PHP.
   if (variable_get('ant_php_' . $node->type, 0)) {
     $output = auto_nodetitle_eval($output, $node);
   }
