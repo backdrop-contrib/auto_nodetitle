@@ -39,6 +39,34 @@ function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
+ * Implements hook_inline_entity_form_entity_form_alter().
+ */
+function auto_nodetitle_inline_entity_form_entity_form_alter(&$entity_form, &$form_state) {
+  if ($entity_form['#entity_type'] == 'node') {
+    $setting = auto_nodetitle_get_setting($entity_form['#entity']->type);
+    if ($setting == AUTO_NODETITLE_ENABLED) {
+      // We will autogenerate the title later, just hide the title field in the
+      // meanwhile.
+      $entity_form['title']['#value'] = 'ant';
+      $entity_form['title']['#type'] = 'value';
+      $entity_form['title']['#required'] = FALSE;
+      // Fix for title replaced field if title module is active.
+      if(module_exists('title') && isset($entity_form['title_field'])){
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#type'] = 'value';
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#value'] = 'ant';
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#required'] = FALSE;
+      }
+    }
+    elseif ($setting == AUTO_NODETITLE_OPTIONAL) {
+      $entity_form['title']['#required'] = FALSE;
+      if(module_exists('title') && isset($entity_form['title_field'])){
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#required'] = FALSE;
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_node_submit().
  *
  * Generate the node title as soon as the form has been submitted. That way
