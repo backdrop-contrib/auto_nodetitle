@@ -51,7 +51,7 @@ function auto_nodetitle_inline_entity_form_entity_form_alter(&$entity_form, &$fo
       $entity_form['title']['#type'] = 'value';
       $entity_form['title']['#required'] = FALSE;
       // Fix for title replaced field if title module is active.
-      if(module_exists('title') && isset($entity_form['title_field'])){
+      if (module_exists('title') && isset($entity_form['title_field'])) {
         $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#type'] = 'value';
         $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#value'] = 'ant';
         $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#required'] = FALSE;
@@ -59,7 +59,7 @@ function auto_nodetitle_inline_entity_form_entity_form_alter(&$entity_form, &$fo
     }
     elseif ($setting == AUTO_NODETITLE_OPTIONAL) {
       $entity_form['title']['#required'] = FALSE;
-      if(module_exists('title') && isset($entity_form['title_field'])){
+      if (module_exists('title') && isset($entity_form['title_field'])) {
         $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#required'] = FALSE;
       }
     }
@@ -85,7 +85,7 @@ function auto_nodetitle_node_submit($node, $form, &$form_state) {
  */
 function auto_nodetitle_node_presave($node) {
   // If not yet done, generate the title now.
-  if(auto_nodetitle_is_needed($node)) {
+  if (auto_nodetitle_is_needed($node)) {
     auto_nodetitle_set_title($node);
   }
 }
@@ -132,7 +132,7 @@ function auto_nodetitle_set_title(&$node) {
     $node->title = t('@type', array('@type' => $types[$node->type]->name));
   }
   // Ensure the generated title isn't too long.
-  $node->title = truncate_utf8($node->title, 255, true, true);
+  $node->title = truncate_utf8($node->title, 255, TRUE, TRUE);
   // With that flag we ensure we don't apply the title two times to the same
   // node. See auto_nodetitle_is_needed().
   $node->auto_nodetitle_applied = TRUE;
@@ -169,10 +169,10 @@ function auto_nodetitle_operations_update($nodes) {
 }
 
 /**
-  * Helper function to generate the title according to the settings.
-  *
-  * @return a title string
-  */
+ * Helper function to generate the title according to the settings.
+ *
+ * @return a title string
+ */
 function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
   $output = token_replace($pattern, array('node' => $node), array('callback' => '_auto_nodetitle_nohtmlentities', 'sanitize' => FALSE, 'clear' => TRUE));
@@ -219,7 +219,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
       t('Disabled'),
       t('Automatically generate the title and hide the title field'),
       t('Automatically generate the title if the title field is left empty'),
-    )
+    ),
   );
   $form['auto_nodetitle']['ant_pattern'] = array(
     '#type' => 'textarea',
@@ -241,7 +241,6 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
       '#token_types' => array('node'),
     );
   }
-
 
   $form['auto_nodetitle']['ant_php'] = array(
     '#access' => user_access('use PHP for title patterns'),
@@ -280,6 +279,7 @@ function auto_nodetitle_node_type($op, $info) {
       variable_del('ant_pattern_' . $info->type);
       variable_del('ant_php_' . $info->type);
       break;
+
     case 'update':
       if (!empty($info->old_type) && $info->old_type != $info->type) {
         variable_set('ant_' . $info->type, auto_nodetitle_get_setting($info->old_type));
