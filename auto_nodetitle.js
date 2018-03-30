@@ -5,7 +5,7 @@ Drupal.behaviors.auto_nodetitleFieldsetSummaries = {
     $('fieldset#edit-auto-nodetitle', context).drupalSetSummary(function (context) {
 
       // Retrieve the value of the selected radio button.
-      var ant = $("input[@name=#edit-auto-nodetitle-ant]:checked").val();
+      var ant = $("input[name='ant']:checked").val();
 
       if (ant==0) {
         return Drupal.t('Disabled')
