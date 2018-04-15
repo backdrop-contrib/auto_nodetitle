@@ -243,6 +243,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     $form['auto_nodetitle']['token_help'] = array(
       '#theme' => 'token_tree',
       '#token_types' => array('node'),
+      '#dialog' => TRUE,
     );
   }
 
