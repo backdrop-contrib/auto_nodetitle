@@ -131,6 +131,10 @@ function auto_nodetitle_set_title(&$node) {
   else {
     $node->title = t('@type', array('@type' => $types[$node->type]->name));
   }
+
+  // Allow other modules to alter node title.
+  drupal_alter('auto_nodetitle', $node);
+
   // Ensure the generated title isn't too long.
   $node->title = truncate_utf8($node->title, 255, TRUE, TRUE);
   // With that flag we ensure we don't apply the title two times to the same
