@@ -22,12 +22,3 @@ function auto_nodetitle_uninstall() {
     variable_del('ant_php_' . $type);
   }
 }
-
-/**
- * Make sure hooks are invoked after cck main hooks.
- */
-function auto_nodetitle_update_1() {
-  $ret = array();
-  $ret[] = update_sql("UPDATE {system} SET weight = 5 WHERE name = 'auto_nodetitle'");
-  return $ret;
-}
