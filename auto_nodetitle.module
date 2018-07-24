@@ -136,7 +136,7 @@ function auto_nodetitle_set_title(&$node) {
   drupal_alter('auto_nodetitle', $node);
 
   // Ensure the generated title isn't too long.
-  $node->title = truncate_utf8($node->title, 255, TRUE, TRUE);
+  $node->title = truncate_utf8($node->title, 70, TRUE, TRUE);
   // With that flag we ensure we don't apply the title two times to the same
   // node. See auto_nodetitle_is_needed().
   $node->auto_nodetitle_applied = TRUE;
