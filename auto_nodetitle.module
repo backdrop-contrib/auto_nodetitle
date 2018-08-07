@@ -178,15 +178,31 @@ function auto_nodetitle_operations_update($nodes) {
  * @return a title string
  */
 function _auto_nodetitle_patternprocessor($pattern, $node) {
-  // Replace tokens.
-  $output = token_replace($pattern, array('node' => $node), array('callback' => '_auto_nodetitle_nohtmlentities', 'sanitize' => FALSE, 'clear' => TRUE));
-  // Evaluate PHP.
+  // // Replace tokens.
+  // $output = token_replace($pattern, array('node' => $node), array('callback' => '_auto_nodetitle_nohtmlentities', 'sanitize' => FALSE, 'clear' => TRUE));
+  // // Evaluate PHP.
   if (variable_get('ant_php_' . $node->type, 0)) {
+    // Replace tokens.
+    $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE, 'clear' => TRUE, 'callback' => '_auto_nodetitle_token_replacement_escape'));
+    // Evalute PHP.
     $output = auto_nodetitle_eval($output, $node);
+  }
+  else {
+    // Replace tokens.
+    $output = token_replace($pattern, array('node' => $node), array('sanitize' => FALSE, 'clear' => TRUE));
   }
   // Strip tags.
   $output = preg_replace('/[\t\n\r\0\x0B]/', '', $output);
   return trim($output);
+}
+
+/**
+ * Helper function to escape token replacements before evaluating PHP code.
+ */
+function _auto_nodetitle_token_replacement_escape(&$replacements, $data, $options) {
+  foreach ($replacements as &$replacement) {
+    $replacement = addslashes($replacement);
+  }
 }
 
 /**
