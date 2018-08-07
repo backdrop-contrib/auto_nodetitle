@@ -23,18 +23,20 @@ function auto_nodetitle_permission() {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter() for the node form.
+ * Implements hook_form_alter() for the node form.
  */
-function auto_nodetitle_form_node_form_alter(&$form, &$form_state, $form_id) {
-  if (auto_nodetitle_get_setting($form['#node']->type) == AUTO_NODETITLE_ENABLED) {
-    // We will autogenerate the title later, just hide the title field in the
-    // meanwhile.
-    $form['title']['#value'] = 'ant';
-    $form['title']['#type'] = 'value';
-    $form['title']['#required'] = FALSE;
-  }
-  elseif (auto_nodetitle_get_setting($form['#node']->type) == AUTO_NODETITLE_OPTIONAL) {
-    $form['title']['#required'] = FALSE;
+function auto_nodetitle_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#node_edit_form']) && $form['#node_edit_form'] === TRUE) {
+    if (auto_nodetitle_get_setting($form['#node']->type) == AUTO_NODETITLE_ENABLED) {
+      // We will autogenerate the title later, just hide the title field in the
+      // meanwhile.
+      $form['title']['#value'] = 'ant';
+      $form['title']['#type'] = 'value';
+      $form['title']['#required'] = FALSE;
+    }
+    elseif (auto_nodetitle_get_setting($form['#node']->type) == AUTO_NODETITLE_OPTIONAL) {
+      $form['title']['#required'] = FALSE;
+    }
   }
 }
 
