@@ -1,4 +1,3 @@
 name = Automatic Nodetitles
 description = Allows hiding of the content title field and automatic title creation.
 core = 7.x
-scripts[] = auto_nodetitle.js
