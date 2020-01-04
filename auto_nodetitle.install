@@ -22,3 +22,23 @@ function auto_nodetitle_update_1() {
   $ret[] = update_sql("UPDATE {system} SET weight = 5 WHERE name = 'auto_nodetitle'");
   return $ret;
 }
+
+/**
+ * Move auto_nodetitle settings from variables to config.
+ */
+function auto_nodetitle_update_1001() {
+  // Migrate variables to config.
+  $config = config('auto_nodetitle.settings');
+  $types = node_type_get_types();
+
+  foreach ($types as $type) {
+    if (null !== $config->get('ant_' . $type->type)) {
+      continue;
+    }
+    $config->set('ant_' . $type->type, update_variable_get('ant_' . $type->type, 0));
+    update_variable_del('ant_' . $type->type);
+    $config->set('ant_pattern_' . $type->type, update_variable_get('ant_pattern_' . $type->type, ''));
+    update_variable_del('ant_pattern_' . $type->type);
+  }
+  $config->save();
+}
