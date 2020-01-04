@@ -21,17 +21,48 @@ function auto_nodetitle_config_info() {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter() for the node form.
+ * Implements hook_form_alter() for the node form.
  */
-function auto_nodetitle_form_node_form_alter(&$form, &$form_state) {
-  if (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == 1) {
-  // We will autogenerate the title later, just hide the title field in the meanwhile.
-    $form['title']['#value'] = 'ant';
-    $form['title']['#type'] = 'value';
-    $form['title']['#required'] = FALSE;
+function auto_nodetitle_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#entity_type']) && $form['#entity_type'] == 'node') {
+    if (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == AUTO_NODETITLE_ENABLED) {
+      // We will autogenerate the title later, just hide the title field in the
+      // meanwhile.
+      $form['title']['#value'] = 'ant';
+      $form['title']['#type'] = 'value';
+      $form['title']['#required'] = FALSE;
+    }
+    elseif (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == AUTO_NODETITLE_OPTIONAL) {
+      $form['title']['#required'] = FALSE;
+    }
   }
-  elseif (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == 2) {
-    $form['title']['#required'] = FALSE;
+}
+
+/**
+ * Implements hook_inline_entity_form_entity_form_alter().
+ */
+function auto_nodetitle_inline_entity_form_entity_form_alter(&$entity_form, &$form_state) {
+  if ($entity_form['#entity_type'] == 'node') {
+    $setting = config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type);
+    if ($setting == AUTO_NODETITLE_ENABLED) {
+      // We will autogenerate the title later, just hide the title field in the
+      // meanwhile.
+      $entity_form['title']['#value'] = 'ant';
+      $entity_form['title']['#type'] = 'value';
+      $entity_form['title']['#required'] = FALSE;
+      // Fix for title replaced field if title module is active.
+      if (module_exists('title') && isset($entity_form['title_field'])) {
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#type'] = 'value';
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#value'] = 'ant';
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#required'] = FALSE;
+      }
+    }
+    elseif ($setting == AUTO_NODETITLE_OPTIONAL) {
+      $entity_form['title']['#required'] = FALSE;
+      if (module_exists('title') && isset($entity_form['title_field'])) {
+        $entity_form['title_field'][$entity_form['title_field']['#language']][0]['value']['#required'] = FALSE;
+      }
+    }
   }
 }
 
@@ -43,9 +74,9 @@ function auto_nodetitle_form_node_form_alter(&$form, &$form_state) {
  */
 function auto_nodetitle_node_submit($node, $form, &$form_state) {
   $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
-
-  if ($setting == 1 || ($setting == 2 && empty($form_state['values']['title']))) {
-    auto_nodetitle_set_title($node);
+  if ($setting == AUTO_NODETITLE_ENABLED || ($setting == AUTO_NODETITLE_OPTIONAL && empty($form_state['values']['title']))) {
+    $node->auto_nodetitle_applied = TRUE;
+    backdrop_register_shutdown_function('_auto_nodetitle_save_title');
   }
 }
 
@@ -56,6 +87,24 @@ function auto_nodetitle_node_presave($node) {
   // If not yet done, generate the title now.
   if (auto_nodetitle_is_needed($node)) {
     auto_nodetitle_set_title($node);
+  }
+}
+
+/**
+ * Helper function to save node title.
+ */
+function _auto_nodetitle_save_title() {
+  $nodes = node_get_recent(1);
+  foreach ($nodes as $node) {
+    auto_nodetitle_set_title($node);
+    db_update('node')
+      ->fields(array('title' => $node->title, 'changed' => REQUEST_TIME))
+      ->condition('nid', $node->nid)
+      ->execute();
+    db_update('node_revision')
+      ->fields(array('title' => $node->title, 'timestamp' => REQUEST_TIME))
+      ->condition('nid', $node->nid)
+      ->execute();
   }
 }
 
@@ -79,14 +128,18 @@ function auto_nodetitle_set_title(&$node) {
     $node->changed = REQUEST_TIME;
     $node->title = _auto_nodetitle_patternprocessor($pattern, $node);
   }
-  elseif ($node->nid) {
+  elseif (!empty($node->nid)) {
     $node->title = t('@type @node-id', array('@type' => $types[$node->type]->name, '@node-id' => $node->nid));
   }
   else {
     $node->title = t('@type', array('@type' => $types[$node->type]->name));
   }
+
+  // Allow other modules to alter node title.
+  backdrop_alter('auto_nodetitle', $node);
+
   // Ensure the generated title isn't too long.
-  $node->title = substr($node->title, 0, 255);
+  $node->title = truncate_utf8($node->title, 70, TRUE, TRUE);
   // With that flag we ensure we don't apply the title two times to the same
   // node. See auto_nodetitle_is_needed().
   $node->auto_nodetitle_applied = TRUE;
@@ -123,29 +176,38 @@ function auto_nodetitle_operations_update($nodes) {
 }
 
 /**
-  * Helper function to generate the title according to the settings.
-  *
-  * @return a title string
-  */
+ * Helper function to generate the title according to the settings.
+ *
+ * @return a title string
+ */
 function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
   global $language;
   $output = token_replace($pattern, array('node' => $node), array(
     'sanitize' => FALSE,
-    'clear' => FALSE,
+    'clear' => TRUE,
     'langcode' => $language->langcode
   ));
 
-  $output = preg_replace('/[\t\n\r\0\x0B]/', '', strip_tags($output));
+  // Strip tags.
+  $output = preg_replace('/[\t\n\r\0\x0B]/', '', $output);
+  return trim($output);
+}
 
-  return $output;
+/**
+ * Callback function to remove entities.
+ */
+function _auto_nodetitle_nohtmlentities(&$replacements, $data, $options) {
+  foreach ($replacements as $key => $value) {
+    $replacements[$key] = decode_entities($value);
+  }
 }
 
 /**
  * Implements hook_form_FORM_ID_alter() for the node type form.
  */
 function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
-  $default_value = auto_nodetitle_get_setting($form['#node_type']->type);
+  $default_value = config_get('auto_nodetitle.settings', 'ant_' . $form['#node_type']->type);
   $form['auto_nodetitle'] = array(
     '#type' => 'fieldset',
     '#title' => t('Automatic title generation'),
@@ -160,13 +222,13 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
     ),
   );
   $form['auto_nodetitle']['ant'] = array(
-    '#type' => 'radios', 
+    '#type' => 'radios',
     '#default_value' => config_get('auto_nodetitle.settings', 'ant_' . $form['#node_type']->type),
     '#options' => array(
       t('Disabled'),
       t('Automatically generate the title and hide the title field'),
       t('Automatically generate the title if the title field is left empty'),
-    )
+    ),
   );
   $form['auto_nodetitle']['ant_pattern'] = array(
     '#type' => 'textfield',
@@ -196,8 +258,25 @@ function auto_nodetitle_node_type_form_submit(&$form, &$form_state) {
 }
 
 /**
- * Gets the auto node title setting associated with the given content type.
+ * Implements hook_node_type_delete().
  */
-function auto_nodetitle_get_setting($type) {
-  return config_get('auto_nodetitle.settings', 'ant_' . $type);
+function auto_nodetitle_node_type_delete($info) {
+  $config = config('auto_nodetitle.settings');
+  $config->clear('ant_' . $info->type);
+  $config->clear('ant_pattern_' . $info->type);
+  $config->save();
 }
+
+/**
+ * Implements hook_node_type_update().
+ */
+function auto_nodetitle_node_type_update($info) {
+  if (!empty($info->old_type) && $info->old_type != $info->type) {
+    $config = config('auto_nodetitle.settings');
+    $config->set('ant_' . $info->type, $config->get($info->old_type));
+    $config->set('ant_pattern_' . $info->type, $config->get('ant_pattern_' . $info->old_type));
+    $config->clear('ant_' . $info->old_type);
+    $config->clear('ant_pattern_' . $info->old_type);
+    $config->save();
+   }
+ }

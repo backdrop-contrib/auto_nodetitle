@@ -1,14 +1,17 @@
 <?php
 /**
  * @file
- * Install, Uninstall, and Update hooks for the automatic nodetitle module.
+ * Installation file for the automatic nodetitle module.
  */
 
 /**
  * Implements hook_install().
  */
 function auto_nodetitle_install() {
-  db_query("UPDATE {system} SET weight = 5 WHERE name = 'auto_nodetitle'");
+  db_update('system')
+    ->fields(array('weight'=>5))
+    ->condition('name','auto_nodetitle','=')
+    ->execute();
 }
 
 /**
