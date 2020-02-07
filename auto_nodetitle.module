@@ -75,7 +75,7 @@ function auto_nodetitle_inline_entity_form_entity_form_alter(&$entity_form, &$fo
 function auto_nodetitle_node_submit($node, $form, &$form_state) {
   $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
   if ($setting == AUTO_NODETITLE_ENABLED || ($setting == AUTO_NODETITLE_OPTIONAL && empty($form_state['values']['title']))) {
-    $node->auto_nodetitle_applied = TRUE;
+    $node->auto_nodetitle_applied = FALSE;
     backdrop_register_shutdown_function('_auto_nodetitle_save_title');
   }
 }
@@ -112,7 +112,7 @@ function _auto_nodetitle_save_title() {
  * Returns whether the auto nodetitle has to be set.
  */
 function auto_nodetitle_is_needed($node) {
-  return empty($node->auto_nodetitle_applied) && ($setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type)) && !($setting == 2 && !empty($node->title));
+  return (isset($node->auto_nodetitle_applied) && empty($node->auto_nodetitle_applied)) && ($setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type)) && !($setting == AUTO_NODETITLE_OPTIONAL && !empty($node->title));
 }
 
 /**
