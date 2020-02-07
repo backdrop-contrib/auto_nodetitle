@@ -103,7 +103,7 @@ function _auto_nodetitle_save_title() {
       ->execute();
     db_update('node_revision')
       ->fields(array('title' => $node->title, 'timestamp' => REQUEST_TIME))
-      ->condition('nid', $node->nid)
+      ->condition('vid', $node->vid)
       ->execute();
   }
 }
