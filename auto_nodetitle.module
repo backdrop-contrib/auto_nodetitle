@@ -25,14 +25,14 @@ function auto_nodetitle_config_info() {
  */
 function auto_nodetitle_form_alter(&$form, &$form_state, $form_id) {
   if (isset($form['#entity_type']) && $form['#entity_type'] == 'node') {
-    if (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == AUTO_NODETITLE_ENABLED) {
+    if (isset($form['#node']) && config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == AUTO_NODETITLE_ENABLED) {
       // We will autogenerate the title later, just hide the title field in the
       // meanwhile.
       $form['title']['#value'] = 'ant';
       $form['title']['#type'] = 'value';
       $form['title']['#required'] = FALSE;
     }
-    elseif (config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == AUTO_NODETITLE_OPTIONAL) {
+    elseif (isset($form['#node']) && config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type) == AUTO_NODETITLE_OPTIONAL) {
       $form['title']['#required'] = FALSE;
     }
   }
