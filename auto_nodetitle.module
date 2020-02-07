@@ -43,7 +43,7 @@ function auto_nodetitle_form_alter(&$form, &$form_state, $form_id) {
  */
 function auto_nodetitle_inline_entity_form_entity_form_alter(&$entity_form, &$form_state) {
   if ($entity_form['#entity_type'] == 'node') {
-    $setting = config_get('auto_nodetitle.settings', 'ant_' . $form['#node']->type);
+    $setting = config_get('auto_nodetitle.settings', 'ant_' . $entity_form['#node']->type);
     if ($setting == AUTO_NODETITLE_ENABLED) {
       // We will autogenerate the title later, just hide the title field in the
       // meanwhile.
