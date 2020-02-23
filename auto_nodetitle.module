@@ -196,15 +196,6 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
 }
 
 /**
- * Callback function to remove entities.
- */
-function _auto_nodetitle_nohtmlentities(&$replacements, $data, $options) {
-  foreach ($replacements as $key => $value) {
-    $replacements[$key] = decode_entities($value);
-  }
-}
-
-/**
  * Callback function to remove HTML entities.
  */
 function _auto_nodetitle_nohtmlentities(&$replacements, $data, $options) {
