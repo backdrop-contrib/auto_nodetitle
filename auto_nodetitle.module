@@ -184,9 +184,10 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
   // Replace tokens.
   global $language;
   $output = token_replace($pattern, array('node' => $node), array(
+    'callback' => '_auto_nodetitle_nohtmlentities',
     'sanitize' => FALSE,
-    'clear' => TRUE,
-    'langcode' => $language->langcode
+    'clear' => FALSE,
+    'langcode' => $language->langcode,
   ));
 
   // Strip tags.
@@ -196,6 +197,15 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
 
 /**
  * Callback function to remove entities.
+ */
+function _auto_nodetitle_nohtmlentities(&$replacements, $data, $options) {
+  foreach ($replacements as $key => $value) {
+    $replacements[$key] = decode_entities($value);
+  }
+}
+
+/**
+ * Callback function to remove HTML entities.
  */
 function _auto_nodetitle_nohtmlentities(&$replacements, $data, $options) {
   foreach ($replacements as $key => $value) {
