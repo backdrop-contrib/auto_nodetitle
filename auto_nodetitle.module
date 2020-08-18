@@ -186,7 +186,7 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
   $output = token_replace($pattern, array('node' => $node), array(
     'callback' => '_auto_nodetitle_nohtmlentities',
     'sanitize' => FALSE,
-    'clear' => FALSE,
+    'clear' => TRUE,
     'langcode' => $language->langcode,
   ));
 
