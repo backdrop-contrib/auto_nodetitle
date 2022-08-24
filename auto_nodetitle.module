@@ -224,7 +224,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
   );
   $form['auto_nodetitle']['ant'] = array(
     '#type' => 'radios',
-    '#default_value' => config_get('auto_nodetitle.settings', 'ant_' . $form['#node_type']->type),
+    '#default_value' => (int) config_get('auto_nodetitle.settings', 'ant_' . $form['#node_type']->type),
     '#options' => array(
       t('Disabled'),
       t('Automatically generate the title and hide the title field'),
