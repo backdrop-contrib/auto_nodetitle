@@ -232,6 +232,7 @@ function auto_nodetitle_form_node_type_form_alter(&$form, &$form_state) {
   $form['auto_nodetitle']['ant_pattern'] = array(
     '#type' => 'textfield',
     '#size' => 80,
+    '#maxlength' => 255,
     '#title' => t('Pattern for the title'),
     '#description' => t('Use [token] syntax to insert a replacement pattern. Leave blank to use the default auto-generated title.'),
     '#default_value' => config_get('auto_nodetitle.settings', 'ant_pattern_' . $form['#node_type']->type),
