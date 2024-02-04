@@ -166,6 +166,8 @@ function auto_nodetitle_action_info() {
  * Callback function for updating node titles.
  */
 function auto_nodetitle_operations_update($node) {
+  // Set the auto_nodetitle_flag to FALSE before checking if title is needed.
+  $node->auto_nodetitle_applied = FALSE;
   if ($node && auto_nodetitle_is_needed($node)) {
     $previous_title = $node->title;
     auto_nodetitle_set_title($node);
