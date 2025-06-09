@@ -96,6 +96,10 @@ function auto_nodetitle_node_presave($node) {
 function _auto_nodetitle_save_title() {
   $nodes = node_get_recent(1);
   foreach ($nodes as $node) {
+    $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
+    if ($setting != AUTO_NODETITLE_ENABLED && $setting != AUTO_NODETITLE_OPTIONAL) {
+      return;
+    }
     auto_nodetitle_set_title($node);
     db_update('node')
       ->fields(array('title' => $node->title, 'changed' => REQUEST_TIME))
