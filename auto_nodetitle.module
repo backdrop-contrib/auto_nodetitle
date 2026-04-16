@@ -76,7 +76,7 @@ function auto_nodetitle_node_submit($node, $form, &$form_state) {
   $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
   if ($setting == AUTO_NODETITLE_ENABLED || ($setting == AUTO_NODETITLE_OPTIONAL && empty($form_state['values']['title']))) {
     $node->auto_nodetitle_applied = FALSE;
-    backdrop_register_shutdown_function('_auto_nodetitle_save_title');
+    backdrop_register_shutdown_function('_auto_nodetitle_save_title', $node);
   }
 }
 
@@ -93,8 +93,8 @@ function auto_nodetitle_node_presave($node) {
 /**
  * Helper function to save node title.
  */
-function _auto_nodetitle_save_title() {
-  $nodes = auto_nodetitle_node_get_recent(1);
+function _auto_nodetitle_save_title($submitted_node) {
+  $nodes = array(node_load($submitted_node->nid, NULL, TRUE));
   foreach ($nodes as $node) {
     $setting = config_get('auto_nodetitle.settings', 'ant_' . $node->type);
     if ($setting != AUTO_NODETITLE_ENABLED && $setting != AUTO_NODETITLE_OPTIONAL) {
