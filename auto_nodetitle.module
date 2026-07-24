@@ -194,7 +194,7 @@ function _auto_nodetitle_patternprocessor($pattern, $node) {
     'callback' => '_auto_nodetitle_nohtmlentities',
     'sanitize' => FALSE,
     'clear' => TRUE,
-    'langcode' => $language->langcode,
+    'language' => $language,
   ));
 
   // Strip tags.
